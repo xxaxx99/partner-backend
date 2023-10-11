@@ -1,6 +1,5 @@
 package com.lzh.partner.exception;
 
-
 import com.lzh.partner.common.BaseResponse;
 import com.lzh.partner.common.ErrorCode;
 import com.lzh.partner.common.ResultUtils;
