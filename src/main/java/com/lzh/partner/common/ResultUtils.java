@@ -2,7 +2,6 @@ package com.lzh.partner.common;
 
 /**
  * 返回工具类
- *
  */
 public class ResultUtils {
 
@@ -26,8 +25,6 @@ public class ResultUtils {
     public static <T> BaseResponse<T> error(ErrorCode errorCode) {
         return new BaseResponse<>(errorCode);
     }
-
-    // 作者 [程序员鱼皮](https://yupi.icu/)
 
     /**
      * 失败
