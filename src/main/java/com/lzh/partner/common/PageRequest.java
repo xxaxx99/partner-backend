@@ -6,9 +6,6 @@ import java.io.Serializable;
 
 /**
  * 通用分页请求参数
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @Data
 public class PageRequest implements Serializable {
@@ -24,4 +21,5 @@ public class PageRequest implements Serializable {
      * 当前是第几页
      */
     protected int pageNum = 1;
+
 }
