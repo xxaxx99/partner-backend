@@ -9,7 +9,7 @@ import java.util.Date;
 
 /**
  * @Classname UserVO
- * @Description 用戶队伍管理信息封装
+ * @Description 用戶信息封装
  * @Version 1.0.0
  * @Date 2023/10/16 16:49
  * @Created by lzh
@@ -18,6 +18,7 @@ import java.util.Date;
 public class UserVO implements Serializable {
 
     private static final long serialVersionUID = 4570203714732525175L;
+
     /**
      * id
      */
