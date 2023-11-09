@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @Classname PreCacheJob
- * @Description TODO
+ * @Description 缓存定时任务
  * @Version 1.0.0
  * @Date 2023/10/10 11:54
  * @Created by lzh
@@ -48,14 +48,14 @@ public class PreCacheJob {
 
         try {
             if (lock.tryLock(0,-1,TimeUnit.MILLISECONDS)){
-                System.out.println("lock: " + Thread.currentThread().getName());
+
                 for (Long userId : mainUserList) {
                     QueryWrapper<User> queryWrapper = new QueryWrapper<>();
                     Page<User> userPage = userService.page(new Page<>(1, 20), queryWrapper);
                     String redisKey = String .format("partner:user:recommend:%s",userId);
                     ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
                     try {
-                        valueOperations.set(redisKey,userPage,30000, TimeUnit.MILLISECONDS);
+                        valueOperations.set(redisKey,userPage,300000, TimeUnit.MILLISECONDS);
                     } catch (Exception e) {
                         log.info("redis set key error",e);
                     }
