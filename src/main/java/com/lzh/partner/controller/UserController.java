@@ -8,16 +8,19 @@ import com.lzh.partner.model.domain.User;
 import com.lzh.partner.model.request.UserLoginRequest;
 import com.lzh.partner.model.request.UserRegisterRequest;
 import com.lzh.partner.service.UserService;
+import com.lzh.partner.utils.AliOssUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -182,6 +185,26 @@ public class UserController {
         }
         User user = userService.getLoginUser(request);
         return ResultUtils.success(userService.matchUsers(num, user));
+    }
+
+    @PostMapping("/avatar")
+    public BaseResponse<String> uploadImage(@RequestPart("file") MultipartFile imageFile,HttpServletRequest request) throws Exception {
+        if (imageFile == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入文件失败");
+        }
+        User loginUser = userService.getLoginUser(request);
+        String originalFilename = imageFile.getOriginalFilename();
+        assert originalFilename != null;
+        String filename = UUID.randomUUID() + originalFilename.substring(originalFilename.lastIndexOf("."));
+        String url = AliOssUtil.uploadFile(filename, imageFile.getInputStream());
+        User user = userService.getById(loginUser.getId());
+        user.setAvatarUrl(url);
+        try {
+            userService.updateById(user);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return ResultUtils.success(url);
     }
 
 

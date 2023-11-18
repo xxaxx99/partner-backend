@@ -24,7 +24,7 @@ import java.util.UUID;
 public class FileUploadController {
 
     @PostMapping("/upload")
-    public BaseResponse<String> upload(@RequestPart("file") MultipartFile file) throws Exception {
+    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile file) throws Exception {
         if (file == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"传入文件失败");
         }

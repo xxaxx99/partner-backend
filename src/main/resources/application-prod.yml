@@ -1,12 +1,10 @@
 spring:
-  profiles:
-    active: dev
   application:
     name: partner-backend
   # DataSource Config
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/partner?serverTimezone=GMT%2b8
+    url: jdbc:mysql://mysql-partner:3306/partner?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=Asia/Shanghai
     username: root
     password: 12345678
   # session 失效时间（分钟）
@@ -24,20 +22,14 @@ spring:
     password: 20020315Cjx..
   jackson:
     time-zone: GMT+8
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 10MB
 server:
   port: 9002
   servlet:
     context-path: /api
     session:
       cookie:
-        domain: localhost
+        domain: 47.115.221.78
   address: 0.0.0.0
-  tomcat:
-    max-swallow-size:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
