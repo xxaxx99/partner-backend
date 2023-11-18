@@ -1,6 +1,5 @@
 package com.lzh.partner.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lzh.partner.common.BaseResponse;
 import com.lzh.partner.common.DeleteRequest;
 import com.lzh.partner.common.ErrorCode;
@@ -8,7 +7,6 @@ import com.lzh.partner.common.ResultUtils;
 import com.lzh.partner.exception.BusinessException;
 import com.lzh.partner.model.domain.Team;
 import com.lzh.partner.model.domain.User;
-import com.lzh.partner.model.domain.UserTeam;
 import com.lzh.partner.model.dto.TeamQuery;
 import com.lzh.partner.model.request.TeamAddRequest;
 import com.lzh.partner.model.request.TeamJoinRequest;
@@ -17,16 +15,13 @@ import com.lzh.partner.model.request.TeamUpdateRequest;
 import com.lzh.partner.model.vo.TeamUserVO;
 import com.lzh.partner.service.TeamService;
 import com.lzh.partner.service.UserService;
-import com.lzh.partner.service.UserTeamService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -48,9 +43,6 @@ public class TeamController {
     @Resource
     private UserService userService;
 
-    @Resource
-    private UserTeamService userTeamService;
-
     @PostMapping("/add")
     public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request){
         if (teamAddRequest == null){
@@ -69,8 +61,10 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean isAdmin = userService.isAdmin(request);
-        List<TeamUserVO> listTeams = teamService.listTeams(teamQuery,isAdmin);
-        return ResultUtils.success(listTeams);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery,isAdmin);
+        //判断用户是否已经加入队伍
+        List<TeamUserVO> teamUserVOList = teamService.inTeam(teamList,request);
+        return ResultUtils.success(teamUserVOList);
     }
 
     @PostMapping("/update")
@@ -135,29 +129,23 @@ public class TeamController {
 
     @GetMapping("/list/my/create")
     public BaseResponse<List<TeamUserVO>> listMyCreateTeams(TeamQuery teamQuery,HttpServletRequest request){
-        if (teamQuery == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        teamQuery.setUserId(loginUser.getId());
-        List<TeamUserVO> listTeams = teamService.listTeams(teamQuery,true);
-        return ResultUtils.success(listTeams);
+        long userId = userService.getLoginUser(request).getId();
+        List<TeamUserVO> tempTeamUserVoList = teamService.getAllTeam(teamQuery, request,userId);
+        List<TeamUserVO> finalTeamUserVoList = tempTeamUserVoList.stream()
+                .filter(teamUserVO -> teamUserVO.getUserId() == userId)
+                .collect(Collectors.toList());
+        List<TeamUserVO> teamUserVOList = teamService.inTeam(finalTeamUserVoList,request);
+        return ResultUtils.success(teamUserVOList);
     }
 
     @GetMapping("/list/my/join")
     public BaseResponse<List<TeamUserVO>> listMyJoinTeams(TeamQuery teamQuery,HttpServletRequest request){
-        if (teamQuery == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId,loginUser.getId());
-        List<UserTeam> userTeams = userTeamService.list(userTeamLambdaQueryWrapper);
-        Map<Long, List<UserTeam>> listMap = userTeams.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
-        ArrayList<Long> idList = new ArrayList<>(listMap.keySet());
-        teamQuery.setIdList(idList);
-        List<TeamUserVO> listTeams = teamService.listTeams(teamQuery,true);
-        return ResultUtils.success(listTeams);
+        long userId = userService.getLoginUser(request).getId();
+        List<TeamUserVO> tempTeamUserVoList = teamService.getAllTeam(teamQuery, request, userId);
+        List<TeamUserVO> finalTeamUserVoList = tempTeamUserVoList.stream()
+                .filter(teamUserVO -> !teamUserVO.getUserId().equals(userId))
+                .collect(Collectors.toList());
+        List<TeamUserVO> teamUserVOList = teamService.inTeam(finalTeamUserVoList,request);
+        return ResultUtils.success(teamUserVOList);
     }
-
 }
