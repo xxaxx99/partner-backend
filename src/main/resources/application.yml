@@ -1,0 +1,16 @@
+server:
+  port: 1203
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: partner-backend
+  # DataSource Config
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/partner?serverTimezone=Asia/Shanghai
+    username: root
+    password: 12345678
+
+
