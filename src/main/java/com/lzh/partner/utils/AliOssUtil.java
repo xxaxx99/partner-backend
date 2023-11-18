@@ -5,6 +5,7 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.PutObjectRequest;
+import com.lzh.partner.config.ConstantPropertiesUtils;
 
 import java.io.InputStream;
 
@@ -15,15 +16,16 @@ import java.io.InputStream;
  * @Date 2023/11/18 1:45
  * @Created by lzh
  */
+
 public class AliOssUtil {
 
     // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
-    private static final String ENDPOINT = "https://oss-cn-beijing.aliyuncs.com";
+    private static final String ENDPOINT = ConstantPropertiesUtils.END_POINT;
     // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
-    private static final String ACCESS_KEY_ID = "LTAI5tKZjMsdsyutxUXb2Yhm";
-    private static final String ACCESS_KEY_SECRET = "w8HIIDNmexexR1momjhFrxVCrmeaZK";
+    private static final String ACCESS_KEY_ID = ConstantPropertiesUtils.ACCESS_KEY_ID;
+    private static final String ACCESS_KEY_SECRET = ConstantPropertiesUtils.ACCESS_KEY_SECRET;
     // 填写Bucket名称
-    private static final String BUCKET_NAME = "partner-bucket-xx";
+    private static final String BUCKET_NAME = ConstantPropertiesUtils.BUCKET_NAME;
 
     public static String uploadFile(String objectName, InputStream inputStream) {
 
