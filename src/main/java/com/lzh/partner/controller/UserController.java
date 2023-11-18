@@ -1,7 +1,5 @@
 package com.lzh.partner.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzh.partner.common.BaseResponse;
 import com.lzh.partner.common.ErrorCode;
 import com.lzh.partner.common.ResultUtils;
@@ -21,6 +19,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.lzh.partner.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -117,11 +116,11 @@ public class UserController {
      * @return
      */
     @GetMapping("/search/tags")
-    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList,HttpServletRequest request){
+    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList){
         if (CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<User> userList = userService.searchUsersByTags(tagNameList, request);
+        List<User> userList = userService.searchUsersByTags(tagNameList);
         return ResultUtils.success(userList);
     }
 
@@ -145,27 +144,45 @@ public class UserController {
     }
 
     @GetMapping("/recommend")
-    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request){
+    public BaseResponse<Object> recommendUsers(long pageSize, long pageNum, HttpServletRequest request){
         //查出当前用户
         User loginUser = userService.getLoginUser(request);
         //设计redisKey保证Key的唯一
         String redisKey = String.format("partner:user:recommend:%s",loginUser.getId());
         ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
         //如果缓存存在直接返回
-        Page<User> userPage =(Page<User>) valueOperations.get(redisKey);
-        if (userPage != null){
-            return ResultUtils.success(userPage);   
+        List<User> userList = (List<User>) valueOperations.get(redisKey);
+        if (userList != null){
+            return ResultUtils.success(userList);
         }
         //没有缓存走数据库
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        userList =  userService.getRandomRecords(pageSize,pageNum);
+        List<User> finalUserList = userList.stream()
+                .filter(user -> user.getId() != loginUser.getId()).collect(Collectors.toList());
         //第一次查数据库写入缓存
         try {
-            valueOperations.set(redisKey,userPage,300000, TimeUnit.MILLISECONDS);
+            valueOperations.set(redisKey,finalUserList,30000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             log.error("redis set key error", e);
         }
-        return ResultUtils.success(userPage);
+        return ResultUtils.success(finalUserList);
     }
+
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUsers(long num, HttpServletRequest request) {
+        if (num <= 0 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.matchUsers(num, user));
+    }
+
 
 }
