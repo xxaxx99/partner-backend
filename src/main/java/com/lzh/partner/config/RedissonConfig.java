@@ -29,7 +29,7 @@ public class RedissonConfig {
         config.useSingleServer()
                 .setAddress(redisAddress)
                 .setDatabase(3)
-                .setPassword("111111");
+                .setPassword("20020315Cjx..");
         // 2. 创建实例
         return Redisson.create(config);
     }
